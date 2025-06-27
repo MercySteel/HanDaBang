@@ -1,64 +1,64 @@
 package com.example.myapp
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
-import android.widget.Button
-import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.textfield.TextInputEditText
+import com.example.myapp.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
 
-    private lateinit var etUsername: TextInputEditText
-    private lateinit var etPassword: TextInputEditText
-    private lateinit var btnLogin: Button
-    private lateinit var tvRegister: TextView
+    private lateinit var binding: ActivityLoginBinding
+    private lateinit var dbHelper: UserDbHelper
+    private lateinit var sharedPrefs: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        // 初始化视图组件
-        etUsername = findViewById(R.id.etUsername)
-        etPassword = findViewById(R.id.etPassword)
-        btnLogin = findViewById(R.id.btnLogin)
-        tvRegister = findViewById(R.id.tvRegister)
+        dbHelper = UserDbHelper(this)
+        sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
 
-        // 设置登录按钮点击事件
-        btnLogin.setOnClickListener {
-            performLogin()
+        // 检查是否已登录
+        if (sharedPrefs.getString("loggedInAccount", null) != null) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
         }
 
-        // 设置注册文本点击事件
-        tvRegister.setOnClickListener {
-            startActivity(Intent(this, RegisterActivity::class.java))
-        }
-    }
+        with(binding) {
+            // 登录按钮
+            btnLogin.setOnClickListener {
+                performLogin()
+            }
 
-    private fun performLogin() {
-        val username = etUsername.text.toString().trim()
-        val password = etPassword.text.toString().trim()
-
-        // 简单的输入验证
-        when {
-            username.isEmpty() -> etUsername.error = "请输入用户名"
-            password.isEmpty() -> etPassword.error = "请输入密码"
-            password.length < 6 -> etPassword.error = "密码长度至少6位"
-            else -> {
-                // 实际应用中这里应该是网络请求验证
-                if (validateCredentials(username, password)) {
-                    Toast.makeText(this, "登录成功", Toast.LENGTH_SHORT).show()
-                    // 实际应用中这里会进入主界面
-                } else {
-                    Toast.makeText(this, "用户名或密码错误", Toast.LENGTH_SHORT).show()
-                }
+            // 注册选项
+            tvRegister.setOnClickListener {
+                startActivity(Intent(this@LoginActivity, RegisterActivity::class.java))
             }
         }
     }
 
-    private fun validateCredentials(username: String, password: String): Boolean {
-        // 这里应该是验证逻辑，简化演示使用固定账号
-        return username == "admin" && password == "123456"
+    private fun performLogin() {
+        val username = binding.etUsername.text.toString().trim()
+        val password = binding.etPassword.text.toString().trim()
+
+        when {
+            username.isEmpty() -> binding.etUsername.error = "请输入账号"
+            password.isEmpty() -> binding.etPassword.error = "请输入密码"
+            else -> {
+                if (dbHelper.validateUser(username, password)) {
+                    // 保存登录状态
+                    sharedPrefs.edit().putString("loggedInAccount", username).apply()
+
+                    // 跳转到主界面
+                    startActivity(Intent(this, MainActivity::class.java))
+                    finish()
+                } else {
+                    binding.etPassword.error = "账号或密码错误"
+                }
+            }
+        }
     }
 }
