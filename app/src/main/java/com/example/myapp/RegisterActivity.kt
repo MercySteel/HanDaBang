@@ -61,8 +61,8 @@ class RegisterActivity : AppCompatActivity() {
         val account = binding.etAccount.text.toString().trim()
         val password = binding.etPassword.text.toString().trim()
         val confirmPassword = binding.etConfirmPassword.text.toString().trim()
-        val nickname = binding.etNickname.text.toString().trim().takeIf { it.isNotEmpty() }
-        val motto = binding.etMotto.text.toString().trim().takeIf { it.isNotEmpty() }
+        //val nickname = binding.etNickname.text.toString().trim().takeIf { it.isNotEmpty() }
+        //val motto = binding.etMotto.text.toString().trim().takeIf { it.isNotEmpty() }
 
         // 使用View Binding直接访问视图
         when {
@@ -78,8 +78,8 @@ class RegisterActivity : AppCompatActivity() {
                     val newUser = User(
                         account = account,
                         password = password,
-                        nickname = nickname,
-                        motto = motto,
+                        //nickname = nickname,
+                        //motto = motto,
                         avatarUri = avatarUri
                     )
 

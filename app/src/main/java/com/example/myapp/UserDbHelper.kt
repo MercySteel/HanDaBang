@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper
 
 class UserDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
+    //数据库结构
     companion object {
         private const val DATABASE_VERSION = 1
         private const val DATABASE_NAME = "UserDatabase.db"
@@ -18,6 +19,7 @@ class UserDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, 
         const val COLUMN_AVATAR_URI = "avatar_uri"
     }
 
+    //创建数据库
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
             """CREATE TABLE $TABLE_USERS (
@@ -30,6 +32,7 @@ class UserDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, 
         )
     }
 
+    //数据库更新
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS $TABLE_USERS")
         onCreate(db)
@@ -37,8 +40,7 @@ class UserDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, 
 
     // 添加用户
     fun addUser(user: User): Long {
-        return writableDatabase.insert(
-            TABLE_USERS, null,
+        return writableDatabase.insert(TABLE_USERS, null,
             ContentValues().apply {
                 put(COLUMN_ACCOUNT, user.account)
                 put(COLUMN_PASSWORD, user.password)
@@ -48,18 +50,18 @@ class UserDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, 
             }
         )
     }
+    //可用put(COLUMN_PASSWORD, BCrypt.hashpw(user.password, BCrypt.gensalt()))升级为密文存储密码
 
     // 根据账号获取用户
     fun getUserByAccount(account: String): User? {
-        readableDatabase.query(
-            TABLE_USERS,
+        readableDatabase.query(TABLE_USERS,
             arrayOf(COLUMN_ACCOUNT, COLUMN_PASSWORD, COLUMN_NICKNAME, COLUMN_MOTTO, COLUMN_AVATAR_URI),
             "$COLUMN_ACCOUNT = ?",
             arrayOf(account),
-            null, null, null
+            null, null, null//分组group by，分组条件 having，排序 order by
         ).use { cursor ->
             if (cursor.moveToFirst()) {
-                return User(
+                return User(//结果不为空，返回用户信息
                     cursor.getString(0),
                     cursor.getString(1),
                     cursor.getString(2),
@@ -73,7 +75,7 @@ class UserDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, 
 
     // 验证用户凭据
     fun validateUser(account: String, password: String): Boolean {
-        readableDatabase.query(
+        readableDatabase.query(//只读数据库链接，优化性能，避免不必要的写锁定
             TABLE_USERS,
             arrayOf(COLUMN_ACCOUNT),
             "$COLUMN_ACCOUNT = ? AND $COLUMN_PASSWORD = ?",
@@ -95,5 +97,36 @@ class UserDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, 
         ).use { cursor ->
             return cursor.count > 0
         }
+    }
+
+    // 获取用户头像的URI
+    fun getUserAvatar(account: String):String?{
+        val db = readableDatabase
+        val cursor = db.query(
+            "users",
+            arrayOf("avatar"),
+            "account = ?",
+            arrayOf(account),
+            null, null, null
+        )
+
+        return try {
+            if (cursor.moveToFirst()) {
+                cursor.getString(0)
+            } else {
+                null
+            }
+        } finally {
+            cursor.close()
+        }
+    }
+
+    // 更新用户头像
+    fun updateUserAvatar(account: String, avatarUri: String): Boolean {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put("avatar", avatarUri)
+        }
+        return db.update("users", values, "account = ?", arrayOf(account)) > 0
     }
 }

@@ -9,6 +9,7 @@ import com.example.myapp.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
 
+    //提问：为什么要用lateinit？延迟初始化绑定对象（避免空指针）
     private lateinit var binding: ActivityLoginBinding
     private lateinit var dbHelper: UserDbHelper
     private lateinit var sharedPrefs: SharedPreferences
@@ -22,10 +23,12 @@ class LoginActivity : AppCompatActivity() {
         sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
 
         // 检查是否已登录
+        /*打开后可一次登录后免登录
         if (sharedPrefs.getString("loggedInAccount", null) != null) {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
+        */
 
         with(binding) {
             // 登录按钮
@@ -50,7 +53,7 @@ class LoginActivity : AppCompatActivity() {
             else -> {
                 if (dbHelper.validateUser(username, password)) {
                     // 保存登录状态
-                    sharedPrefs.edit().putString("loggedInAccount", username).apply()
+                    //sharedPrefs.edit().putString("loggedInAccount", username).apply()
 
                     // 跳转到主界面
                     startActivity(Intent(this, MainActivity::class.java))
