@@ -1,6 +1,5 @@
 package com.example.myapp
 
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
@@ -10,7 +9,6 @@ import android.view.Menu
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
@@ -66,7 +64,6 @@ class MainActivity : AppCompatActivity() {
 
         setupNavHeaderClick()
 
-        // 首次加载用户信息
         loadUserInfo()
     }
 
@@ -114,12 +111,12 @@ class MainActivity : AppCompatActivity() {
             Glide.with(this)
                 .load(Uri.parse(uriStr))
                 .circleCrop()
-                .placeholder(R.mipmap.ic_launcher)
-                .error(R.mipmap.ic_launcher)
+                .placeholder(R.mipmap.ic_launcher_round)
+                .error(R.mipmap.ic_launcher_round)
                 .into(imageView)
         } ?: run {
             Glide.with(this)
-                .load(R.mipmap.ic_launcher)
+                .load(R.mipmap.ic_launcher_round)
                 .circleCrop()
                 .into(imageView)
         }

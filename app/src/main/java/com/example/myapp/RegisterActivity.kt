@@ -2,6 +2,7 @@ package com.example.myapp
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,16 +14,19 @@ class RegisterActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRegisterBinding
     private lateinit var dbHelper: UserDbHelper
-    private var avatarUri: String? = null
+    private var selectedImageUri: Uri? = null // 修改变量名保持一致性
 
+    // 统一图像选择启动器
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let { uri ->
-                avatarUri = uri.toString()
+                selectedImageUri = uri // 保存选中的URI对象
                 Glide.with(this)
                     .load(uri)
+                    .circleCrop() // 添加圆形裁剪（与UserInfoActivity一致）
+                    .placeholder(R.mipmap.ic_launcher) // 占位符
                     .into(binding.ivAvatar)
             }
         }
@@ -36,18 +40,15 @@ class RegisterActivity : AppCompatActivity() {
         dbHelper = UserDbHelper(this)
 
         with(binding) {
-            // 设置默认头像
+            // 设置默认头像（与UserInfoActivity保持一致）
             Glide.with(this@RegisterActivity)
                 .load(R.mipmap.ic_launcher)
+                .circleCrop() // 添加圆形裁剪
                 .into(ivAvatar)
 
-            // 选择头像
+            // 选择头像（使用统一的打开方法）
             btnSelectAvatar.setOnClickListener {
-                val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-                    type = "image/*"
-                    addCategory(Intent.CATEGORY_OPENABLE)
-                }
-                imagePickerLauncher.launch(intent)
+                openImagePicker() // 使用与UserInfoActivity相同的打开方法
             }
 
             // 注册按钮
@@ -57,12 +58,18 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
+    // 提取为单独方法（与UserInfoActivity一致）
+    private fun openImagePicker() {
+        val intent = Intent(Intent.ACTION_PICK).apply {
+            type = "image/*"
+        }
+        imagePickerLauncher.launch(intent)
+    }
+
     private fun registerUser() {
         val account = binding.etAccount.text.toString().trim()
         val password = binding.etPassword.text.toString().trim()
         val confirmPassword = binding.etConfirmPassword.text.toString().trim()
-        //val nickname = binding.etNickname.text.toString().trim().takeIf { it.isNotEmpty() }
-        //val motto = binding.etMotto.text.toString().trim().takeIf { it.isNotEmpty() }
 
         // 使用View Binding直接访问视图
         when {
@@ -74,19 +81,26 @@ class RegisterActivity : AppCompatActivity() {
                 if (dbHelper.accountExists(account)) {
                     binding.etAccount.error = "该账号已被注册"
                 } else {
-                    // 创建新用户
+                    // 创建新用户 - 转换为字符串保存
+                    val avatarString = selectedImageUri?.toString()
+
                     val newUser = User(
                         account = account,
                         password = password,
-                        //nickname = nickname,
-                        //motto = motto,
-                        avatarUri = avatarUri
+                        avatarUri = avatarString
                     )
 
                     // 添加到数据库
                     if (dbHelper.addUser(newUser) != -1L) {
                         Toast.makeText(this, "注册成功", Toast.LENGTH_SHORT).show()
-                        finish() // 返回登录界面
+
+                        // 自动登录（可选）
+                        getSharedPreferences("user_prefs", MODE_PRIVATE).edit()
+                            .putString("current_user", account)
+                            .apply()
+
+                        startActivity(Intent(this, MainActivity::class.java))
+                        finish() // 关闭注册界面
                     } else {
                         Toast.makeText(this, "注册失败，请重试", Toast.LENGTH_SHORT).show()
                     }
