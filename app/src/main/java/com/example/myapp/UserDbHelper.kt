@@ -99,34 +99,39 @@ class UserDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, 
         }
     }
 
-    // 获取用户头像的URI
-    fun getUserAvatar(account: String):String?{
-        val db = readableDatabase
-        val cursor = db.query(
-            "users",
-            arrayOf("avatar"),
-            "account = ?",
-            arrayOf(account),
-            null, null, null
-        )
-
-        return try {
-            if (cursor.moveToFirst()) {
-                cursor.getString(0)
-            } else {
-                null
-            }
-        } finally {
-            cursor.close()
-        }
-    }
-
-    // 更新用户头像
-    fun updateUserAvatar(account: String, avatarUri: String): Boolean {
+    // 添加用户更新方法
+    fun updateUser(user: User): Int {
         val db = writableDatabase
         val values = ContentValues().apply {
-            put("avatar", avatarUri)
+            put(COLUMN_NICKNAME, user.nickname)
+            put(COLUMN_MOTTO, user.motto)
+            put(COLUMN_AVATAR_URI, user.avatarUri)
         }
-        return db.update("users", values, "account = ?", arrayOf(account)) > 0
+
+        val where = "$COLUMN_ACCOUNT = ?"
+        val whereArgs = arrayOf(user.account)
+
+        return db.update(TABLE_USERS, values, where, whereArgs)
     }
+
+    // 更新用户个人资料（不包括密码）
+    fun updateUserProfile(
+        account: String,
+        nickname: String?,
+        motto: String?,
+        avatarUri: String?
+    ): Int {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COLUMN_NICKNAME, nickname)
+            put(COLUMN_MOTTO, motto)
+            put(COLUMN_AVATAR_URI, avatarUri)
+        }
+
+        val where = "$COLUMN_ACCOUNT = ?"
+        val whereArgs = arrayOf(account)
+
+        return db.update(TABLE_USERS, values, where, whereArgs)
+    }
+
 }

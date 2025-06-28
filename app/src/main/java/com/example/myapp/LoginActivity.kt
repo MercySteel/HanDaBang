@@ -44,18 +44,20 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun performLogin() {
-        val username = binding.etUsername.text.toString().trim()
+        val account = binding.etAccount.text.toString().trim()
         val password = binding.etPassword.text.toString().trim()
 
         when {
-            username.isEmpty() -> binding.etUsername.error = "请输入账号"
+            account.isEmpty() -> binding.etAccount.error = "请输入账号"
             password.isEmpty() -> binding.etPassword.error = "请输入密码"
             else -> {
-                if (dbHelper.validateUser(username, password)) {
+                if (dbHelper.validateUser(account, password)) {
                     // 保存登录状态
                     //sharedPrefs.edit().putString("loggedInAccount", username).apply()
 
                     // 跳转到主界面
+                    val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+                    sharedPreferences.edit().putString("current_user", account).apply()
                     startActivity(Intent(this, MainActivity::class.java))
                     finish()
                 } else {

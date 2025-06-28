@@ -32,17 +32,20 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private lateinit var sharedPrefs: SharedPreferences
+    private lateinit var sharedPreferences: SharedPreferences
     private lateinit var dbHelper: UserDbHelper
-    private lateinit var navHeader: View
-    private lateinit var navHeaderImageView: ImageView
 
-    override fun onCreate(savedInstanceState: Bundle?)
-    {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // 初始化数据库帮助类
+        dbHelper = UserDbHelper(this)
+
+        // 获取SharedPreferences实例
+        sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
 
         setSupportActionBar(binding.appBarMain.toolbar)
 
@@ -55,84 +58,72 @@ class MainActivity : AppCompatActivity() {
         val navView: NavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.nav_home,
-                R.id.nav_gallery,
-                R.id.nav_slideshow),
-            drawerLayout)
+            setOf(R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow),
+            drawerLayout
+        )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
         setupNavHeaderClick()
 
-        // 初始化数据库和共享首选项
-        dbHelper = UserDbHelper(this)
-        sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-
-        // 获取 NavigationView 的头部视图
-        navHeader = binding.navView.getHeaderView(0)
-        navHeaderImageView = navHeader.findViewById(R.id.imageView)
-
-        // 初始化加载头像
-        loadNavigationHeaderAvatar()
+        // 首次加载用户信息
+        loadUserInfo()
     }
 
     override fun onResume() {
         super.onResume()
-        // 每次返回主界面时更新导航栏头像
-        loadNavigationHeaderAvatar()
+        // 每次返回主界面时刷新用户信息（确保显示最新数据）
+        loadUserInfo()
     }
 
-    override fun onStart() {
-        super.onStart()
-        // 注册全局头像更新监听
-        AvatarUpdateHelper.addAvatarUpdateListener(::updateNavigationHeaderAvatar)
-    }
+    // 加载当前登录用户信息并更新界面
+    private fun loadUserInfo() {
+        // 从SharedPreferences获取当前登录用户账号
+        val currentAccount = sharedPreferences.getString("current_user", null)
 
-    override fun onStop() {
-        super.onStop()
-        // 取消注册监听
-        AvatarUpdateHelper.removeAvatarUpdateListener(::updateNavigationHeaderAvatar)
-    }
+        if (currentAccount != null) {
+            // 使用协程在后台线程加载用户数据
+            lifecycleScope.launch(Dispatchers.IO) {
+                val currentUser = dbHelper.getUserByAccount(currentAccount)
 
-    // 加载导航头部的头像
-    private fun loadNavigationHeaderAvatar() {
-        // 1. 获取当前登录用户名
-        val loggedInAccount = sharedPrefs.getString("loggedInAccount", null) ?: return
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                // 2. 从数据库获取头像URI
-                val avatarUri = dbHelper.getUserAvatar(loggedInAccount)
-
-                // 3. 更新UI
                 withContext(Dispatchers.Main) {
-                    if (avatarUri != null && avatarUri.isNotBlank()) {
-                        Glide.with(this@MainActivity)
-                            .load(Uri.parse(avatarUri))
-                            .placeholder(R.mipmap.ic_launcher_round)
-                            .error(R.mipmap.ic_launcher_round)
-                            .circleCrop()
-                            .into(navHeaderImageView)
+                    if (currentUser != null) {
+                        updateNavHeader(
+                            nickname = currentUser.nickname ?: currentAccount,
+                            motto = currentUser.motto ?: "未设置签名",
+                            avatarUri = currentUser.avatarUri
+                        )
                     } else {
-                        navHeaderImageView.setImageResource(R.mipmap.ic_launcher_round)
+                        Log.e("MainActivity", "用户信息获取失败: $currentAccount")
                     }
                 }
-            } catch (e: Exception) {
-                Log.e("AvatarLoad", "Error loading navigation header avatar", e)
             }
+        } else {
+            Log.e("MainActivity", "未检测到登录用户")
         }
     }
 
-    // 处理头像更新通知
-    private fun updateNavigationHeaderAvatar(newAvatarUri: String) {
-        Glide.with(this)
-            .load(Uri.parse(newAvatarUri))
-            .placeholder(R.mipmap.ic_launcher_round)
-            .error(R.mipmap.ic_launcher_round)
-            .circleCrop()
-            .into(navHeaderImageView)
-    }
+    // 更新导航头部信息
+    private fun updateNavHeader(nickname: String, motto: String, avatarUri: String?) {
+        val headerView = binding.navView.getHeaderView(0)
+        headerView.findViewById<TextView>(R.id.username).text = nickname
+        headerView.findViewById<TextView>(R.id.motto).text = motto
 
+        val imageView = headerView.findViewById<ImageView>(R.id.imageView)
+        avatarUri?.let { uriStr ->
+            Glide.with(this)
+                .load(Uri.parse(uriStr))
+                .circleCrop()
+                .placeholder(R.mipmap.ic_launcher)
+                .error(R.mipmap.ic_launcher)
+                .into(imageView)
+        } ?: run {
+            Glide.with(this)
+                .load(R.mipmap.ic_launcher)
+                .circleCrop()
+                .into(imageView)
+        }
+    }
 
     //点击头像编辑个人信息
     private fun setupNavHeaderClick() {
@@ -140,32 +131,10 @@ class MainActivity : AppCompatActivity() {
         val navHeaderRoot = headerView.findViewById<View>(R.id.imageView)
 
         navHeaderRoot.setOnClickListener {
+            // 直接启动UserInfoActivity，不再使用结果回调
             val intent = Intent(this, UserInfoActivity::class.java)
-            editProfileLauncher.launch(intent)
+            startActivity(intent)
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-        }
-    }
-
-    // 接收用户信息活动返回值
-    private val editProfileLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) {
-            result.data?.let {
-                updateUserProfile(
-                    username = it.getStringExtra("username") ?: "",
-                    description = it.getStringExtra("description") ?: "",
-                    avatarUri = it.getStringExtra("avatarUri")?.let { uriStr -> Uri.parse(uriStr) }
-                )
-            }
-        }
-    }
-
-    // 更新用户信息
-    private fun updateUserProfile(username: String, description: String, avatarUri: Uri?) {
-        val headerView = binding.navView.getHeaderView(0)
-        headerView.findViewById<TextView>(R.id.username).text = username
-        headerView.findViewById<TextView>(R.id.motto).text = description
-        avatarUri?.let {
-            headerView.findViewById<ImageView>(R.id.imageView).setImageURI(avatarUri)
         }
     }
 
