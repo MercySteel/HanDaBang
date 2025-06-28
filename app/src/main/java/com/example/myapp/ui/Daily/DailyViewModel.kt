@@ -1,13 +1,13 @@
 package com.example.myapp.ui.Daily
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class DailyViewModel : ViewModel() {
+    // 如果将来需要跨配置更改保存数据（如播放状态）
+    // 但目前所有状态都可以放在Fragment中
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is home Fragment"
-    }
-    val text: LiveData<String> = _text
+    // 可添加如下状态：
+    // var currentSongId: Int = 0
+    // var isPlaying: Boolean = false
+    // var isRandomMode: Boolean = false
 }

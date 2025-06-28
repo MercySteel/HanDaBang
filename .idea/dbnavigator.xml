@@ -716,7 +716,7 @@
           </object-type-filter>
         </object-filters>
       </connection>
-      <connection id="1ea4cb67-1381-4112-a46e-d163f24930f4" active="true" signed="true">
+      <connection id="1ea4cb67-1381-4112-a46e-d163f24930f4" active="false" signed="true">
         <database>
           <name value="Connection 6" />
           <description value="" />
@@ -820,7 +820,7 @@
           </object-type-filter>
         </object-filters>
       </connection>
-      <connection id="289af878-064d-46bc-b25d-7d28c60f0738" active="true" signed="true">
+      <connection id="289af878-064d-46bc-b25d-7d28c60f0738" active="false" signed="true">
         <database>
           <name value="Connection 7" />
           <description value="" />
@@ -924,7 +924,7 @@
           </object-type-filter>
         </object-filters>
       </connection>
-      <connection id="64f36157-5598-4752-82b6-b5baf39e0a1d" active="true" signed="true">
+      <connection id="64f36157-5598-4752-82b6-b5baf39e0a1d" active="false" signed="true">
         <database>
           <name value="Connection 8" />
           <description value="" />
