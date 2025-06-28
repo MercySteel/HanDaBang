@@ -56,4 +56,6 @@ dependencies {
 
     implementation(libs.glide)             // Glide 核心库
     kapt(libs.glide.compiler)              // Glide 注解处理器
+
+    implementation("androidx.lifecycle:lifecycle-process:2.6.1")
 }
