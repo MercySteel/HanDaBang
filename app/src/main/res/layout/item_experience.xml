@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white"
+    android:elevation="4dp"
+    android:layout_marginBottom="8dp"
+    android:padding="16dp"
+    tools:context="model.ExperienceFragment">
+
+    <ImageView
+        android:id="@+id/deleteBtn"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="8dp"
+        android:contentDescription="@string/delete_experience"
+        android:src="@drawable/ic_delete"
+        app:tint="?attr/colorError" />
+
+    <!-- 内容区域 (避开删除按钮) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@id/deleteBtn"
+        android:orientation="vertical">
+
+        <!-- 经验内容 -->
+        <TextView
+            android:id="@+id/experienceContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="?android:attr/textColorPrimary"
+            tools:text="这是一条考研经验分享内容样例，展示如何高效备考..." />
+
+        <!-- 发布时间 -->
+        <TextView
+            android:id="@+id/experienceDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary"
+            tools:text="2023-06-15 14:30" />
+
+        <!-- 经验图片 (可选) -->
+        <ImageView
+            android:id="@+id/experienceImage"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="8dp"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            tools:visibility="visible"
+            tools:src="@tools:sample/backgrounds/scenic" />
+    </LinearLayout>
+
+</RelativeLayout>
