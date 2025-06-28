@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    tools:context=".RegisterActivity">
+
+    <LinearLayout
+        android:paddingTop="64dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <!-- 头像区域 -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:id="@+id/ivAvatar"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:src="@mipmap/ic_launcher"
+                android:scaleType="centerCrop"
+                android:contentDescription="用户头像"
+                android:layout_marginBottom="48dp"
+                />
+
+            <Button
+                android:id="@+id/btnSelectAvatar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="选择头像"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="-8dp"/>
+        </FrameLayout>
+
+        <!-- 账号输入 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilAccount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:errorEnabled="true">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etAccount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="账号"
+                android:inputType="text"
+                android:maxLines="1"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 密码输入 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:errorEnabled="true"
+            app:passwordToggleEnabled="true">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="密码"
+                android:inputType="textPassword"
+                android:maxLines="1"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 确认密码 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilConfirmPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:errorEnabled="true"
+            app:passwordToggleEnabled="true">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etConfirmPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="确认密码"
+                android:inputType="textPassword"
+                android:maxLines="1"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 昵称 -->
+        <!--
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilNickname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNickname"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="昵称 (可选)"
+                android:inputType="text"
+                android:maxLines="1"/>
+        </com.google.android.material.textfield.TextInputLayout>
+        -->
+
+        <!-- 座右铭 -->
+        <!--
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilMotto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etMotto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="座右铭 (可选)"
+                android:inputType="text"
+                android:maxLines="2"/>
+        </com.google.android.material.textfield.TextInputLayout>
+        -->
+
+        <!-- 注册按钮 -->
+        <Button
+            android:id="@+id/btnRegister"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="注册"
+            android:textColor="@android:color/white"
+            android:backgroundTint="?colorPrimary"/>
+    </LinearLayout>
+</ScrollView>

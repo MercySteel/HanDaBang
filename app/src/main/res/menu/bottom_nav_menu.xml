@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_universities"
+        android:icon="@drawable/ic_school"
+        android:title="@string/title_universities" />
+    <item
+        android:id="@+id/navigation_majors"
+        android:icon="@drawable/ic_book"
+        android:title="@string/title_majors" />
+    <item
+        android:id="@+id/navigation_exam_subjects"
+        android:icon="@drawable/ic_exam"
+        android:title="@string/title_exam_subjects" />
+    <item
+        android:id="@+id/navigation_experience"
+        android:icon="@drawable/ic_experience"
+        android:title="@string/title_experience" />
+</menu>
