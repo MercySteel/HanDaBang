@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     if (currentUser != null) {
                         updateNavHeader(
-                            nickname = currentUser.nickname ?: currentAccount,
+                            nickname = currentUser.nickname ?: "未设置昵称",
                             motto = currentUser.motto ?: "未设置签名",
                             avatarUri = currentUser.avatarUri
                         )

@@ -7,7 +7,9 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Setting</string>
 
-    <string name="menu_home">Home</string>
-    <string name="menu_gallery">Gallery</string>
-    <string name="menu_slideshow">Slideshow</string>
+    <string name="menu_1">每日推送</string>
+    <string name="menu_2">信息查询</string>
+    <string name="menu_3">片刻娱乐</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

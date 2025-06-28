@@ -23,12 +23,12 @@ class LoginActivity : AppCompatActivity() {
         sharedPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
 
         // 检查是否已登录
-        /*打开后可一次登录后免登录
+        /*打开后可一次登录后免登录*/
         if (sharedPrefs.getString("loggedInAccount", null) != null) {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
-        */
+        /**/
 
         with(binding) {
             // 登录按钮
@@ -53,7 +53,7 @@ class LoginActivity : AppCompatActivity() {
             else -> {
                 if (dbHelper.validateUser(account, password)) {
                     // 保存登录状态
-                    //sharedPrefs.edit().putString("loggedInAccount", username).apply()
+                    sharedPrefs.edit().putString("loggedInAccount", account).apply()
 
                     // 跳转到主界面
                     val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
