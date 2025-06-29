@@ -1,16 +1,24 @@
 package com.example.myapp
 
+import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
@@ -20,6 +28,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
@@ -45,6 +54,12 @@ class MainActivity : AppCompatActivity() {
     private var elapsedHours = 0
     private var elapsedMinutes = 0
     private var elapsedSeconds = 0
+
+    companion object {
+        const val PREFS_NAME = "AppSettings"
+        const val INTERVAL_KEY = "reminder_interval"
+        const val DEFAULT_INTERVAL = 30 // 默认30分钟
+    }
 
     // 计时器状态
     private var isTimerRunning = false
@@ -110,58 +125,97 @@ class MainActivity : AppCompatActivity() {
 
         binding.appBarMain.fab.setOnClickListener { view ->
             if (!isTimerRunning) {
-                // 开始计时
-                resetTimer()
-                isTimerRunning = true
-                binding.appBarMain.fab.setImageResource(stopIconRes) // 切换为停止图标
-                showTimerSnackbar(view)
-                startTimer()
+                // 开始倒计时
+                startCountdown(view)
             } else {
-                // 停止计时
+                // 停止倒计时
                 resetTimer()
             }
         }
     }
 
+    private fun startCountdown(view: View) {
+        // 重置计时器
+        resetTimer()
+
+        // 从设置中获取倒计时时间（分钟）并转换为秒
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val intervalMinutes = prefs.getInt(INTERVAL_KEY, DEFAULT_INTERVAL)
+
+        // 计算倒计时总时间（秒）
+        val totalSeconds = intervalMinutes * 60
+
+        // 设置倒计时值
+        elapsedMinutes = intervalMinutes
+        elapsedSeconds = 0
+        elapsedHours = 0
+
+        // 更新状态
+        isTimerRunning = true
+        binding.appBarMain.fab.setImageResource(stopIconRes)
+
+        // 显示倒计时Snackbar
+        showTimerSnackbar(view)
+
+        // 开始倒计时
+        startTimer()
+    }
+
     private fun showTimerSnackbar(view: android.view.View) {
         snackbar?.dismiss()
 
-        snackbar = Snackbar.make(view, formatTime(), Snackbar.LENGTH_INDEFINITE)
+        snackbar = Snackbar.make(view, formatCountdownTime(), Snackbar.LENGTH_INDEFINITE)
             .setAnimationMode(Snackbar.ANIMATION_MODE_SLIDE)
             .setAnchorView(R.id.fab)
 
         snackbar?.show()
     }
 
-    // 计时器任务
+    // 计时器任务（现在作为倒计时器）
     private val timerRunnable = object : Runnable {
         override fun run() {
-            elapsedSeconds++
-            if (elapsedSeconds >= 60) {
-                elapsedMinutes++
-                elapsedSeconds = 0
-            }
-            if (elapsedMinutes >= 60) {
-                elapsedHours++
-                elapsedMinutes = 0
-            }
+            if (elapsedSeconds > 0 || elapsedMinutes > 0 || elapsedHours > 0) {
+                // 递减倒计时
+                if (elapsedSeconds > 0) {
+                    elapsedSeconds--
+                } else {
+                    if (elapsedMinutes > 0) {
+                        elapsedMinutes--
+                        elapsedSeconds = 59
+                    } else if (elapsedHours > 0) {
+                        elapsedHours--
+                        elapsedMinutes = 59
+                        elapsedSeconds = 59
+                    }
+                }
 
-            updateSnackbarText()
-            mainHandler.postDelayed(this, 1000)
+                updateSnackbarText()
+
+                // 检查是否倒计时结束
+                if (elapsedHours == 0 && elapsedMinutes == 0 && elapsedSeconds == 0) {
+                    // 倒计时结束
+                    countdownFinished()
+                } else {
+                    // 继续倒计时
+                    mainHandler.postDelayed(this, 1000)
+                }
+            }
         }
     }
 
-    // 格式化时间为 HH:MM:SS
-    private fun formatTime(): String {
-        return String.format("%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
+    // 格式化倒计时时间为 MM:SS
+    private fun formatCountdownTime(): String {
+        // 计算总分钟数（包括小时部分）
+        val totalMinutes = elapsedHours * 60 + elapsedMinutes
+        return String.format("%02d:%02d", totalMinutes, elapsedSeconds)
     }
 
     private fun updateSnackbarText() {
-        snackbar?.setText(formatTime())
+        snackbar?.setText(formatCountdownTime())
     }
 
     private fun startTimer() {
-        mainHandler.postDelayed(timerRunnable, 1000)
+        mainHandler.post(timerRunnable)
     }
 
     private fun resetTimer() {
@@ -177,6 +231,36 @@ class MainActivity : AppCompatActivity() {
         // 更新UI为默认状态
         isTimerRunning = false
         binding.appBarMain.fab.setImageResource(playIconRes)
+    }
+
+    // 倒计时结束处理
+    private fun countdownFinished() {
+        // 移除所有回调
+        mainHandler.removeCallbacks(timerRunnable)
+
+        // 播放提示音
+        playCompletionSound()
+
+        // 更新Snackbar显示结束信息
+        snackbar?.setText("倒计时结束!")
+        snackbar?.setAction("重新开始") {
+            startCountdown(binding.root)
+        }
+
+        // 重置按钮状态
+        isTimerRunning = false
+        binding.appBarMain.fab.setImageResource(playIconRes)
+    }
+
+    private fun playCompletionSound() {
+        try {
+            // 使用Android默认系统通知音
+            val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            val ringtone = RingtoneManager.getRingtone(applicationContext, notification)
+            ringtone.play()
+        } catch (e: Exception) {
+            Log.e("Countdown", "无法播放提示音", e)
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -198,9 +282,21 @@ class MainActivity : AppCompatActivity() {
 
         // 如果之前处于运行状态
         if (isTimerRunning) {
-            binding.appBarMain.fab.setImageResource(stopIconRes)
-            startTimer()
-            showTimerSnackbar(binding.root)
+            // 检查是否倒计时已经结束
+            if (elapsedHours == 0 && elapsedMinutes == 0 && elapsedSeconds == 0) {
+                // 如果倒计时已结束，只显示结束状态
+                binding.appBarMain.fab.setImageResource(playIconRes)
+                showTimerSnackbar(binding.root)
+                snackbar?.setText("倒计时结束!")
+                snackbar?.setAction("重新开始") {
+                    startCountdown(binding.root)
+                }
+            } else {
+                // 否则继续倒计时
+                binding.appBarMain.fab.setImageResource(stopIconRes)
+                showTimerSnackbar(binding.root)
+                startTimer()
+            }
         }
     }
 
@@ -277,6 +373,86 @@ class MainActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.main, menu)
         return true
     }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_settings -> {
+                // 处理设置点击
+                handleSettings()
+                true
+            }
+            R.id.action_about -> {
+                // 显示关于对话框
+                showAboutDialog()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showAboutDialog() {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("关于")  // 设置对话框标题
+            .setMessage("\n版本: 1.0.0\n开发者: HanDaBang\n联系方式: https://github.com/MercySteel/HanDaBang") // 设置内容
+            .setPositiveButton("确定") { dialog, _ -> dialog.dismiss() } // 设置确定按钮
+            .create()
+
+        // 自定义对话框样式
+        dialog.setOnShowListener {
+            // 设置标题文字颜色
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary))
+            dialog.findViewById<TextView>(android.R.id.message)?.setTextColor(ContextCompat.getColor(this, R.color.textColorSecondary))
+        }
+
+        dialog.show()
+    }
+
+    private fun handleSettings() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_settings, null)
+
+        // 创建对话框
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        // 获取视图引用
+        val etInterval = dialogView.findViewById<EditText>(R.id.et_interval)
+        val btnCancel = dialogView.findViewById<Button>(R.id.btn_cancel)
+        val btnSave = dialogView.findViewById<Button>(R.id.btn_save)
+
+        // 加载当前设置的值
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val currentInterval = prefs.getInt(INTERVAL_KEY, DEFAULT_INTERVAL)
+        etInterval.setText(currentInterval.toString())
+
+        // 设置按钮点击事件
+        btnCancel.setOnClickListener { dialog.dismiss() }
+
+        btnSave.setOnClickListener {
+            val input = etInterval.text.toString()
+            if (input.isNotEmpty()) {
+                try {
+                    val interval = input.toInt()
+                    if (interval > 0) {
+                        // 保存设置
+                        prefs.edit().putInt(INTERVAL_KEY, interval).apply()
+
+                        Toast.makeText(this, "设置已保存", Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                    } else {
+                        Toast.makeText(this, "请输入大于0的整数", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: NumberFormatException) {
+                    Toast.makeText(this, "请输入有效的数字", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(this, "请输入时间间隔", Toast.LENGTH_SHORT).show()
+            }
+        }
+        // 显示对话框
+        dialog.show()
+    }
+
 
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment_content_main)

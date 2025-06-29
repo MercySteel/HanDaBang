@@ -1,120 +1,143 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+  根布局：垂直方向的线性布局
+  xmlns:android - 定义Android命名空间
+  android:layout_width - 宽度匹配父布局
+  android:layout_height - 高度匹配父布局
+  android:orientation - 子元素垂直排列
+  android:padding - 内边距16dp
+  android:gravity - 子元素居中显示
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="top"
+    android:orientation="vertical"
     android:padding="16dp">
 
-    <!-- 专辑封面和歌曲信息 -->
+    <!--
+      歌曲名称文本控件
+      android:id - 控件唯一标识符
+      android:layout_width - 宽度包裹内容
+      android:layout_height - 高度包裹内容
+      android:text - 默认显示文本
+      android:textSize - 文字大小20sp
+      android:layout_marginBottom - 底部外边距16dp
+    -->
+
+
+    <!--
+      播放进度条控件
+      android:id - 控件唯一标识符
+      android:layout_width - 宽度匹配父布局
+      android:layout_height - 高度包裹内容
+      android:layout_marginBottom - 底部外边距16dp
+    -->
+
+    <!--
+      播放/暂停按钮
+      android:id - 控件唯一标识符
+      android:layout_width - 宽度包裹内容
+      android:layout_height - 高度包裹内容
+      android:text - 按钮默认显示文本
+    -->
+
+
     <LinearLayout
-        android:id="@+id/topSection"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:layout_alignParentTop="true">
+        android:layout_width="wrap_content"
+        android:layout_height="134dp"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal">
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            app:srcCompat="@drawable/song1"
-            android:scaleType="fitCenter"
-            android:contentDescription="专辑封面"/>
+            android:layout_width="183dp"
+            android:layout_height="123dp"
+            app:srcCompat="@drawable/song1" />
 
-        <TextView
-            android:id="@+id/tvSongName"
-            android:layout_width="match_parent"
+
+        <LinearLayout
+            android:layout_width="378dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="music.mp3"
-            android:textSize="20sp"
-            android:gravity="center"
-            android:maxLines="1"
-            android:ellipsize="end"/>
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvSongName"
+                android:layout_width="179dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:gravity="center"
+                android:text="music.mp3"
+                android:textSize="20sp" />
+
+            <Button
+                android:id="@+id/btnPlayPause"
+                android:layout_width="179dp"
+                android:layout_height="wrap_content"
+                android:text="播放" />
+
+
+        </LinearLayout>
+
+
     </LinearLayout>
 
-    <!-- 控制按钮区域 -->
-    <LinearLayout
-        android:id="@+id/controlSection"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/topSection"
-        android:layout_marginTop="24dp"
-        android:gravity="center_horizontal"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/modeOrder"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="顺序播放"/>
-
-        <Button
-            android:id="@+id/btnPlayPause"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="播放"/>
-
-        <Button
-            android:id="@+id/btnNext"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="下一曲"/>
-
-        <Button
-            android:id="@+id/showListButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="歌单"/>
-    </LinearLayout>
-
-    <!-- 播放进度条 -->
     <SeekBar
         android:id="@+id/seekBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/controlSection"
+        android:layout_marginBottom="16dp" />
+
+    <LinearLayout
+        android:layout_width="383dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"/>
+        android:orientation="horizontal">
 
-    <!-- 歌词显示区域 - 修复高度问题 -->
-    <FrameLayout
-        android:id="@+id/lyricsContainer"
+
+        <Button
+            android:id="@+id/modeOrder"
+            android:layout_width="125dp"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="顺序播放" />
+
+
+        <Button
+            android:id="@+id/btnNext"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:text="下一曲" />
+
+        <Button
+            android:id="@+id/showListButton"
+            android:layout_width="126dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="歌曲列表" />
+
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/songListView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_below="@id/seekBar"
-        android:layout_above="@+id/listSection"
-        android:layout_marginBottom="16dp"
-        android:layout_weight="1"> <!-- 关键修复 -->
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:background="#FFF"
+        android:elevation="4dp"
+        android:visibility="gone"
+        android:maxHeight="300dp"/>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/lyricsRecyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="16dp"
-            android:clipToPadding="false"
-            android:scrollbars="vertical"
-            android:background="#EEEEEE"/>
-    </FrameLayout>
 
-    <!-- 歌曲列表区域（默认隐藏） -->
-    <FrameLayout
-        android:id="@+id/listSection"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_alignParentBottom="true"
-        android:visibility="gone">
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/lyricsRecyclerView"
+        android:layout_width="382dp"
+        android:layout_height="match_parent"
+        android:background="#EEEEEE"
+        android:clipToPadding="false"
+        android:padding="16dp"
+        android:scrollbars="vertical" />
 
-        <ListView
-            android:id="@+id/songListView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#FFF"
-            android:elevation="4dp"/>
-    </FrameLayout>
-</RelativeLayout>
+</LinearLayout>

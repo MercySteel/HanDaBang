@@ -11,4 +11,8 @@
     <color name="snackbar_bg">#333333</color>
     <color name="snackbar_text">#FFFFFF</color>
     <color name="snackbar_action">#FF9800</color>
+
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="textColorPrimary">#212121</color>
+    <color name="textColorSecondary">#757575</color>
 </resources>
