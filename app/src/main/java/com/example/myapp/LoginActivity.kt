@@ -25,7 +25,7 @@ class LoginActivity : AppCompatActivity() {
         // 检查是否已登录
         /*打开后可一次登录后免登录*/
         if (sharedPrefs.getString("loggedInAccount", null) != null) {
-            startActivity(Intent(this, MainActivity::class.java))
+            startActivity(Intent(this, TransitActivity::class.java))
             finish()
         }
         /**/
@@ -58,7 +58,7 @@ class LoginActivity : AppCompatActivity() {
                     // 跳转到主界面
                     val sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
                     sharedPreferences.edit().putString("current_user", account).apply()
-                    startActivity(Intent(this, MainActivity::class.java))
+                    startActivity(Intent(this, TransitActivity::class.java))
                     finish()
                 } else {
                     binding.etPassword.error = "账号或密码错误"

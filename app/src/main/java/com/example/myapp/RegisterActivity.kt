@@ -99,7 +99,7 @@ class RegisterActivity : AppCompatActivity() {
                             .putString("current_user", account)
                             .apply()
 
-                        startActivity(Intent(this, MainActivity::class.java))
+                        startActivity(Intent(this, TransitActivity::class.java))
                         finish() // 关闭注册界面
                     } else {
                         Toast.makeText(this, "注册失败，请重试", Toast.LENGTH_SHORT).show()
