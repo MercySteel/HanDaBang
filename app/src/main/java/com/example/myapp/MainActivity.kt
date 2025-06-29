@@ -6,14 +6,18 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.media.RingtoneManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.VibrationEffect
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -39,6 +43,8 @@ import com.example.myapp.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.abs
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -54,6 +60,14 @@ class MainActivity : AppCompatActivity() {
     private var elapsedHours = 0
     private var elapsedMinutes = 0
     private var elapsedSeconds = 0
+
+    private var fabDx = 0f
+    private var fabDy = 0f
+    private var isLongPressMode = false
+    private var longPressStartTime = 0L
+    private val LONG_PRESS_DURATION = 500L // 半秒长按阈值
+    private val MOVE_THRESHOLD = 10f      // 误触移动阈值(像素)
+    private val fabLongPressChecker = Handler(Looper.getMainLooper())
 
     companion object {
         const val PREFS_NAME = "AppSettings"
@@ -123,16 +137,97 @@ class MainActivity : AppCompatActivity() {
         binding.appBarMain.fab.setImageResource(playIconRes)
         isTimerRunning = false
 
-        binding.appBarMain.fab.setOnClickListener { view ->
-            if (!isTimerRunning) {
-                // 开始倒计时
-                startCountdown(view)
-            } else {
-                // 停止倒计时
-                resetTimer()
+        binding.appBarMain.fab.setOnTouchListener { view, event ->
+            val parentContainer = binding.appBarMain.root as ViewGroup
+            val screenWidth = parentContainer.width.toFloat()
+            val screenHeight = parentContainer.height.toFloat()
+
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    // 重置长按状态
+                    isLongPressMode = false
+                    longPressStartTime = System.currentTimeMillis()
+
+                    // 保存初始偏移
+                    fabDx = view.x - event.rawX
+                    fabDy = view.y - event.rawY
+
+                    // 启动长按检测Runnable
+                    fabLongPressChecker.postDelayed({
+                        // 如果仍在触摸且未达到移动阈值
+                        isLongPressMode = true
+
+                        // 添加视觉反馈（可选）
+                        view.animate().scaleX(1.1f).scaleY(1.1f).setDuration(100).start()
+
+                        // 震动反馈（可选，已移除Vibrator引用）
+                        // vibrateShort()
+                    }, LONG_PRESS_DURATION)
+
+                    true
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    val elapsed = System.currentTimeMillis() - longPressStartTime
+                    val dx = abs(event.rawX - (view.x - fabDx))
+                    val dy = abs(event.rawY - (view.y - fabDy))
+
+                    // 如果在长按时间内移动距离超过阈值，取消长按检测
+                    if (elapsed < LONG_PRESS_DURATION &&
+                        (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD)) {
+                        fabLongPressChecker.removeCallbacksAndMessages(null)
+                    }
+
+                    if (isLongPressMode || elapsed >= LONG_PRESS_DURATION) {
+                        // 计算新位置（限制在屏幕范围内）
+                        var newX = event.rawX + fabDx
+                        var newY = event.rawY + fabDy
+
+                        newX = newX.coerceIn(0f, screenWidth - view.width)
+                        newY = newY.coerceIn(0f, screenHeight - view.height)
+
+                        // 实时更新位置
+                        view.animate()
+                            .x(newX)
+                            .y(newY)
+                            .setDuration(0)
+                            .start()
+                        return@setOnTouchListener true
+                    }
+                    false
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    // 取消长按检测
+                    fabLongPressChecker.removeCallbacksAndMessages(null)
+
+                    // 重置视觉状态
+                    view.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
+
+                    // 处理不同情况
+                    if (isLongPressMode) {
+                        // 结束长按模式
+                        isLongPressMode = false
+                        return@setOnTouchListener true
+                    } else {
+                        val elapsed = System.currentTimeMillis() - longPressStartTime
+                        if (elapsed < LONG_PRESS_DURATION) {
+                            // 短按处理：触发原始计时功能
+                            if (!isTimerRunning) {
+                                startCountdown(view)
+                            } else {
+                                resetTimer()
+                            }
+                        }
+                        return@setOnTouchListener false
+                    }
+                }
+
+                else -> false
             }
         }
     }
+
 
     private fun startCountdown(view: View) {
         // 重置计时器
