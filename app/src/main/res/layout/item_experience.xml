@@ -9,7 +9,7 @@
     android:elevation="4dp"
     android:layout_marginBottom="8dp"
     android:padding="16dp"
-    tools:context="model.ExperienceFragment">
+    tools:context=".model.ExperienceFragment">
 
     <ImageView
         android:id="@+id/deleteBtn"

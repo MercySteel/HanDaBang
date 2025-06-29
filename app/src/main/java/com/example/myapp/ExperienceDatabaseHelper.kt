@@ -11,7 +11,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.icu.text.SimpleDateFormat
-import model.Experience
+import com.example.myapp.model.Experience
 import java.util.Date
 import java.util.Locale
 import kotlin.apply

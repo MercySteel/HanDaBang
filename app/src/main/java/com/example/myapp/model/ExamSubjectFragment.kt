@@ -31,7 +31,7 @@ class ExamSubjectsFragment : Fragment() {
         val examSubjects = ExamDataProvider.getExamSubjects()
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = ExamSubjectAdapter(examSubjects)
+            adapter = ExamSubjectAdapter(examSubjects )
         }
     }
 

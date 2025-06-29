@@ -1,4 +1,4 @@
-package com.example.myapp.ui
+package com.example.myapp.model
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,7 +8,6 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapp.data.DataProvider
 import com.example.myapp.databinding.FragmentUniversityBinding
-import com.example.myapp.model.University
 
 class UniversityFragment : Fragment() {
 

@@ -1,7 +1,4 @@
-package model
-
-
-
+package com.example.myapp.model
 
 import android.app.Activity
 import android.content.Intent
@@ -13,16 +10,18 @@ import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.myapp.R
-import model.Experience
-import com.example.myapp.ExperienceDatabaseHelper
+import com.example.myapp.databinding.FragmentExperienceBinding
+import com.example.myapp.database.KaoyanDatabaseHelper
+import com.example.myapp.ui.experience.ExperienceAdapter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -30,19 +29,23 @@ import java.util.*
 
 class ExperienceFragment : Fragment() {
 
-    private lateinit var dbHelper: ExperienceDatabaseHelper
-    private lateinit var experienceInput: EditText
-    private lateinit var addImageBtn: Button
-    private lateinit var submitBtn: Button
-    private lateinit var imagePreview: ImageView
-    private lateinit var recyclerView: RecyclerView
+    private var _binding: FragmentExperienceBinding? = null
+    private val binding get() = _binding!!
+    private lateinit var dbHelper: KaoyanDatabaseHelper
     private lateinit var adapter: ExperienceAdapter
     private var selectedImageUri: Uri? = null
     private lateinit var imagesDir: File
 
-    companion object {
-        const val PICK_IMAGE_REQUEST = 100
-        fun newInstance() = ExperienceFragment()
+    private val pickImageLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.let { uri ->
+                selectedImageUri = uri
+                binding.imagePreview.visibility = View.VISIBLE
+                binding.imagePreview.setImageURI(uri)
+            }
+        }
     }
 
     override fun onCreateView(
@@ -50,72 +53,73 @@ class ExperienceFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(R.layout.fragment_experience, container, false)
+        _binding = FragmentExperienceBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        dbHelper = ExperienceDatabaseHelper(requireContext())
-        imagesDir = File(requireContext().filesDir, "experience_images").apply { mkdirs() }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        initViews(view)
+        setupDatabase()
         setupRecyclerView()
         setupClickListeners()
         loadExperiences()
-
-        return view
     }
 
-    private fun initViews(view: View) {
-        experienceInput = view.findViewById(R.id.experienceInput)
-        addImageBtn = view.findViewById(R.id.addImageBtn)
-        submitBtn = view.findViewById(R.id.submitBtn)
-        imagePreview = view.findViewById(R.id.imagePreview)
-        recyclerView = view.findViewById(R.id.experienceRecyclerView)
+    private fun setupDatabase() {
+        dbHelper = KaoyanDatabaseHelper(requireContext())
+        imagesDir = File(requireContext().filesDir, "experience_images").apply { mkdirs() }
     }
 
     private fun setupRecyclerView() {
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        adapter = ExperienceAdapter(emptyList()) { experience ->
-            // 点击删除逻辑
-            deleteExperience(experience)
+        // 修正1：使用正确的ID experienceRecyclerView
+        binding.experienceRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        adapter = ExperienceAdapter { experience ->
+            // 修正2：传递整个Experience对象
+            showDeleteConfirmation(experience)
         }
-        recyclerView.adapter = adapter
+
+        binding.experienceRecyclerView.adapter = adapter
     }
 
     private fun setupClickListeners() {
-        addImageBtn.setOnClickListener { openImageChooser() }
-        submitBtn.setOnClickListener { submitExperience() }
+        binding.addImageBtn.setOnClickListener { openImageChooser() }
+        binding.submitBtn.setOnClickListener { submitExperience() }
     }
 
     private fun openImageChooser() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, PICK_IMAGE_REQUEST)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
-            selectedImageUri = data.data
-            imagePreview.visibility = View.VISIBLE
-            imagePreview.setImageURI(selectedImageUri)
-        }
+        pickImageLauncher.launch(intent)
     }
 
     private fun submitExperience() {
-        val content = experienceInput.text.toString().trim()
+        val content = binding.experienceInput.text.toString().trim()
         if (content.isEmpty()) {
             Toast.makeText(requireContext(), "请输入经验内容", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val imagePath = selectedImageUri?.let { saveImageToInternalStorage(it) }
-        dbHelper.addExperience(content, imagePath)
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val imagePath = selectedImageUri?.let { saveImageToInternalStorage(it) }
+                val id = dbHelper.addExperience(content, imagePath)
 
-        clearInputs()
-        loadExperiences()
-        Toast.makeText(requireContext(), "经验分享已发布", Toast.LENGTH_SHORT).show()
+                withContext(Dispatchers.Main) {
+                    clearInputs()
+                    loadExperiences()
+                    Toast.makeText(requireContext(), "经验分享已发布", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "发布失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
-    private fun saveImageToInternalStorage(uri: Uri): String? {
-        return try {
+    private suspend fun saveImageToInternalStorage(uri: Uri): String? = withContext(Dispatchers.IO) {
+        try {
             val inputStream = requireContext().contentResolver.openInputStream(uri)
             val bitmap = BitmapFactory.decodeStream(inputStream)
             inputStream?.close()
@@ -136,19 +140,54 @@ class ExperienceFragment : Fragment() {
         }
     }
 
-    private fun clearInputs() {
-        experienceInput.text.clear()
-        imagePreview.visibility = View.GONE
-        selectedImageUri = null
+    private fun showDeleteConfirmation(experience: Experience) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("删除经验")
+            .setMessage("确定要删除这条经验分享吗？")
+            .setPositiveButton("删除") { _, _ ->
+                deleteExperience(experience.id)
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    private fun deleteExperience(experienceId: Long) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val deletedRows = dbHelper.deleteExperience(experienceId)
+            withContext(Dispatchers.Main) {
+                if (deletedRows > 0) {
+                    loadExperiences()
+                    Toast.makeText(requireContext(), "已删除", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun loadExperiences() {
-        val experiences = dbHelper.getAllExperiences()
-        adapter.updateExperiences(experiences)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val experiences = dbHelper.getAllExperiences()
+            withContext(Dispatchers.Main) {
+                adapter.submitList(experiences)
+                // 修正3：添加emptyView或使用其他方式处理空状态
+                if (experiences.isEmpty()) {
+                    Toast.makeText(requireContext(), "暂无经验分享", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
-    private fun deleteExperience(id: Long) {
-        // 这里可以添加删除逻辑
-        loadExperiences()
+    private fun clearInputs() {
+        binding.experienceInput.text?.clear()
+        binding.imagePreview.visibility = View.GONE
+        selectedImageUri = null
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    companion object {
+        fun newInstance() = ExperienceFragment()
     }
 }

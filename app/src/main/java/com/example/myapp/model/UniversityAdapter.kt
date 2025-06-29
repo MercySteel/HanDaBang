@@ -1,4 +1,4 @@
-package com.example.myapp.ui
+package com.example.myapp.model
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapp.R
-import com.example.myapp.model.University
 
 class UniversityAdapter(
     private val universities: List<University>,

@@ -1,6 +1,7 @@
 package com.example.myapp.ui.gallery
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,9 +9,9 @@ import androidx.fragment.app.Fragment
 import com.example.myapp.R
 import com.example.myapp.databinding.FragmentGalleryBinding
 import com.example.myapp.model.ExamSubjectsFragment
-import model.ExperienceFragment
+import com.example.myapp.model.ExperienceFragment
 import com.example.myapp.model.MajorsFragment
-import com.example.myapp.ui.UniversityFragment
+import com.example.myapp.model.UniversityFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class GalleryFragment : Fragment() {
@@ -50,31 +51,26 @@ class GalleryFragment : Fragment() {
     }
 
     private fun setupBottomNavigation() {
-        val bottomNav = binding.root.findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        val bottomNav = binding.root.findViewById<BottomNavigationView>(R.id.bottom_navigation).apply {
+            selectedItemId = currentSelectedItemId
 
-        // 设置当前选中项
-        bottomNav.selectedItemId = currentSelectedItemId
-
-        bottomNav.setOnNavigationItemSelectedListener { item ->
-            currentSelectedItemId = item.itemId
-            when (item.itemId) {
-                R.id.navigation_universities -> {
-                    replaceFragment(UniversityFragment.newInstance())
-                    true
+            setOnNavigationItemSelectedListener { item ->
+                currentSelectedItemId = item.itemId
+                when (item.itemId) {
+                    R.id.navigation_universities ->
+                        safeReplaceFragment(UniversityFragment.newInstance())
+                    R.id.navigation_majors ->
+                        safeReplaceFragment(MajorsFragment.newInstance())
+                    R.id.navigation_exam_subjects ->
+                        safeReplaceFragment(ExamSubjectsFragment.newInstance())
+                    R.id.navigation_experience ->
+                        safeReplaceFragment(ExperienceFragment.newInstance())
+                    else -> false
+                }.also { result ->
+                    if (!result) {
+                        Log.e("GalleryFragment", "Fragment替换失败: ${item.title}")
+                    }
                 }
-                R.id.navigation_majors -> {
-                    replaceFragment(MajorsFragment.newInstance())
-                    true
-                }
-                R.id.navigation_exam_subjects -> {
-                    replaceFragment(ExamSubjectsFragment.newInstance())
-                    true
-                }
-                R.id.navigation_experience -> {
-                    replaceFragment(ExperienceFragment.newInstance())
-                    true
-                }
-                else -> false
             }
         }
     }
@@ -90,14 +86,26 @@ class GalleryFragment : Fragment() {
     }
 
     private fun replaceFragment(fragment: Fragment) {
+        if (!isAdded || isDetached) return
+
         childFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
             .setReorderingAllowed(true)
-            .commitNowAllowingStateLoss()
+            .commit()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+    private fun safeReplaceFragment(fragment: Fragment): Boolean {
+        return if (isAdded && !isDetached) {
+            childFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .commitAllowingStateLoss()
+            true
+        } else {
+            false
+        }
     }
 }

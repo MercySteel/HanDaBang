@@ -1,68 +1,67 @@
-package model
+package com.example.myapp.ui.experience
 
 import android.graphics.BitmapFactory
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.myapp.R
-import java.io.File
+import com.example.myapp.databinding.ItemExperienceBinding
+import com.example.myapp.model.Experience
 
 class ExperienceAdapter(
-    private var experiences: List<Experience>,
-    private val onDeleteClick: (Long) -> Unit
-) : RecyclerView.Adapter<ExperienceAdapter.ExperienceViewHolder>() {
+    private val onItemClick: (Experience) -> Unit  // 修正：接收Experience对象
+) : ListAdapter<Experience, ExperienceAdapter.ExperienceViewHolder>(DiffCallback()) {
 
-    inner class ExperienceViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val contentText: TextView = itemView.findViewById(R.id.experienceContent)
-        val dateText: TextView = itemView.findViewById(R.id.experienceDate)
-        val imageView: ImageView = itemView.findViewById(R.id.experienceImage)
-        val deleteBtn: ImageView = itemView.findViewById(R.id.deleteBtn)
+    inner class ExperienceViewHolder(
+        private val binding: ItemExperienceBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(experience: Experience) {
+            binding.apply {
+                experienceContent.text = experience.content
+                experienceDate.text = experience.createdAt
+
+                // 图片处理
+                experience.imagePath?.let { path ->
+                    try {
+                        experienceImage.visibility = View.VISIBLE
+                        experienceImage.setImageBitmap(BitmapFactory.decodeFile(path))
+                    } catch (e: Exception) {
+                        experienceImage.visibility = View.GONE
+                    }
+                } ?: run {
+                    experienceImage.visibility = View.GONE
+                }
+
+                deleteBtn.setOnClickListener {
+                    onItemClick(experience)  // 传递整个对象
+                }
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExperienceViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_experience, parent, false)
-        return ExperienceViewHolder(view)
+        val binding = ItemExperienceBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
+        return ExperienceViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ExperienceViewHolder, position: Int) {
-        val experience = experiences[position]
-
-        // 绑定文本内容
-        holder.contentText.text = experience.content
-        holder.dateText.text = experience.createdAt ?: ""
-
-        // 处理图片显示
-        experience.imagePath?.let { path ->
-            try {
-                val imageFile = File(path)
-                if (imageFile.exists()) {
-                    holder.imageView.visibility = View.VISIBLE
-                    val bitmap = BitmapFactory.decodeFile(path)
-                    holder.imageView.setImageBitmap(bitmap)
-                } else {
-                    holder.imageView.visibility = View.GONE
-                }
-            } catch (e: Exception) {
-                holder.imageView.visibility = View.GONE
-            }
-        } ?: run {
-            holder.imageView.visibility = View.GONE
-        }
-
-        // 设置删除按钮点击事件
-        holder.deleteBtn.setOnClickListener {
-            onDeleteClick(experience.id ?: 0L) // 提供默认值防止空指针
-        }
+        holder.bind(getItem(position))
     }
 
-    override fun getItemCount(): Int = experiences.size
+    class DiffCallback : DiffUtil.ItemCallback<Experience>() {
+        override fun areItemsTheSame(oldItem: Experience, newItem: Experience): Boolean {
+            return oldItem.id == newItem.id
+        }
 
-    fun updateExperiences(newExperiences: List<Experience>) {
-        experiences = newExperiences
-        notifyDataSetChanged()
+        override fun areContentsTheSame(oldItem: Experience, newItem: Experience): Boolean {
+            return oldItem == newItem
+        }
     }
 }
