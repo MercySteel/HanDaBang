@@ -7,6 +7,7 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">设置专注时长</string>
     <string name="action_about">关于</string>
+    <string name="action_out">退出登录</string>
 
     <string name="menu_1">每日推送</string>
     <string name="menu_2">信息查询</string>

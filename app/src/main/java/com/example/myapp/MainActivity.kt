@@ -386,6 +386,11 @@ class MainActivity : AppCompatActivity() {
                 showAboutDialog()
                 true
             }
+            R.id.action_out -> {
+                // 处理用户登出
+                handleOut()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -451,6 +456,32 @@ class MainActivity : AppCompatActivity() {
         }
         // 显示对话框
         dialog.show()
+    }
+
+    private fun handleOut() {
+        // 清除登录凭证（SharedPreferences）
+        val userPrefs = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        userPrefs.edit().apply {
+            remove("loggedInAccount")
+            apply()
+        }
+
+        // 清除当前用户信息（另一个SharedPreferences）
+        val currentUserPrefs = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        currentUserPrefs.edit().apply {
+            remove("current_user")
+            apply()
+        }
+
+        // 跳转到登录页面并清除回退栈
+        val intent = Intent(this, LoginActivity::class.java).apply {
+            // 确保用户无法通过返回按钮返回
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+
+        // 结束当前活动
+        finish()
     }
 
 
