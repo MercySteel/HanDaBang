@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.example.myapp.ui.Daily.DailyFragment"
+        android:label="@string/menu_1"
+        tools:layout="@layout/fragment_daily" />
+
+    <fragment
+        android:id="@+id/nav_gallery"
+        android:name="com.example.myapp.ui.Info.InfoFragment"
+        android:label="@string/menu_2"
+        tools:layout="@layout/fragment_info" />
+
+    <fragment
+        android:id="@+id/nav_slideshow"
+        android:name="com.example.myapp.ui.Amuse.AmuseFragment"
+        android:label="@string/menu_3"
+        tools:layout="@layout/fragment_amuse" />
+    <fragment
+        android:id="@+id/nav_chat"
+
+        android:name="com.example.chat.ui.ChatFragment.ChatFragment"
+        android:label="聊天室"
+        tools:layout="@layout/fragment_chat" />
+
+</navigation>

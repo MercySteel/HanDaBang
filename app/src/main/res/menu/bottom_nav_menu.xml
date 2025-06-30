@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_universities"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:title="@string/title_universities" />
+    <item
+        android:id="@+id/navigation_majors"
+        android:icon="?android:attr/actionModeFindDrawable"
+        android:title="@string/title_majors" />
+    <item
+        android:id="@+id/navigation_exam_subjects"
+        android:icon="@android:drawable/ic_dialog_dialer"
+        android:title="@string/title_exam_subjects" />
+    <item
+        android:id="@+id/navigation_experience"
+        android:icon="?attr/actionModePasteDrawable"
+        android:title="@string/title_experience" />
+</menu>

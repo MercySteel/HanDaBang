@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">MyApp</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_username">Android Studio</string>
+    <string name="nav_motto">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">设置专注时长</string>
+    <string name="action_about">关于</string>
+
+    <string name="menu_1">每日推送</string>
+    <string name="menu_2">信息查询</string>
+    <string name="menu_3">日程管理</string>
+    <string name="menu_4">线上聊天</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="title_universities">院校信息</string>
+    <string name="title_majors">专业方向</string>
+    <string name="title_exam_subjects">考试科目</string>
+    <string name="title_experience">经验分享</string>
+    <string name="delete_experience">删除</string>
+</resources>
